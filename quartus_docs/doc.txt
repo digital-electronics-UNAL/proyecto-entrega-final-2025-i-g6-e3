@@ -1,0 +1,1 @@
+Usar esta carpeta como la dirección para que Quartus cree los archivos y carpetas aquí.
