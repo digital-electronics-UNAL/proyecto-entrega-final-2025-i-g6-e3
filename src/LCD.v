@@ -1,13 +1,13 @@
-module LCD1602_controller #(parameter NUM_COMMANDS = 4, 
-                                      NUM_DATA_ALL = 32,  
+module LCD1604_controller #(parameter NUM_COMMANDS = 4,   // 4 comandos basicos del funcionamiento de la LCD
+                                      NUM_DATA_ALL = 64,  
                                       NUM_DATA_PERLINE = 16,
                                       DATA_BITS = 8,
                                       COUNT_MAX = 800000)(
-    input clk,            
-    input reset,          
-    input ready_i,
-    output reg rs,        
-    output reg rw,
+    input clk,            // Reloj
+    input reset,          // Inicio estados 
+    input ready_i,        
+    output reg rs,        // Tipo de registro rs=0 "Comando configuracion", rs=1 "Datos"
+    output reg rw,        // Accion rw=0 "Escritura", rw=1 "Lectura"
     output enable,    
     output reg [DATA_BITS-1:0] data
 );
@@ -40,8 +40,8 @@ reg [$clog2(NUM_DATA_PERLINE):0] data_counter;
 
 // Banco de registros
 reg [DATA_BITS-1:0] static_data_mem [0: NUM_DATA_ALL-1]; // Memoria para los datos estáticos (tamaño)
-// Memoria para los comandos de configuración (Cantidad de filas)
-reg [DATA_BITS-1:0] config_mem [0:NUM_COMMANDS-1]; 
+
+reg [DATA_BITS-1:0] config_mem [0:NUM_COMMANDS-1]; // Memoria para los comandos de configuración (Cantidad de filas)
 
 initial begin
     fsm_state <= IDLE;
