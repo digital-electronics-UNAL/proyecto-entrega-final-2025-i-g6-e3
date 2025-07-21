@@ -24,7 +24,7 @@ localparam RESTART = 4'd5;
 localparam SEND_ADDR_READ = 4'd6;
 localparam WAIT_ACK_2 = 4'd7;
 localparam READ_BYTE_1 = 4'd8;  
-localparam STOP = 4'd8; 
+localparam STOP = 4'd9; 
 localparam DONE = 4'd10;
 
 //Registros internos
@@ -99,7 +99,7 @@ always @(*) begin
             if (scl_tick) begin
                 if (bit_cnt == 0) begin
                     sda_out_en = 0; // liberar SDA para ACK
-                    next_state = WAIT_ACK; // esperamos ACK
+                    next_state = WAIT_ACK_1; // esperamos ACK
                 end else begin 
                     bit_cnt = bit_cnt - 1; // siguiente bit
                 end 
@@ -125,7 +125,7 @@ always @(*) begin
             if (scl_tick) begin
                 if (bit_cnt == 0) begin
                     sda_out_en = 0;
-                    next_state = WAIT_ACK; 
+                    next_state = WAIT_ACK_1; 
                 end else begin
                     bit_cnt = bit_cnt - 1;
                 end
@@ -149,7 +149,7 @@ always @(*) begin
             if (scl_tick) begin
                 if (bit_cnt == 0) begin
                     sda_out_en = 0; 
-                    next_state = WAIT_ACK; 
+                    next_state = WAIT_ACK_2; 
                 end else begin 
                     bit_cnt = bit_cnt - 1; 
                 end 
@@ -199,3 +199,5 @@ always @(*) begin
     endcase
 
 end
+
+endmodule
