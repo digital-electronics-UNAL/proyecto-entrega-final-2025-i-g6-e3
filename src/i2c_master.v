@@ -89,7 +89,7 @@ always @(*) begin
             sda_out = 0;
             sda_out_en = 1; 
             shift_reg = ADDR_WRITE;
-            bit_cnt = 7; 
+            bit_cnt = 0; 
             next_state = SEND_ADDR_WRITE;
         end
         SEND_ADDR_WRITE: begin
@@ -97,11 +97,11 @@ always @(*) begin
             sda_out = shift_reg[bit_cnt]; // enviamos bit actual por SDA
 
             if (scl_tick) begin
-                if (bit_cnt == 0) begin
+                if (bit_cnt == 7) begin
                     sda_out_en = 0; // liberar SDA para ACK
                     next_state = WAIT_ACK_1; // esperamos ACK
                 end else begin 
-                    bit_cnt = bit_cnt - 1; // siguiente bit
+                    bit_cnt = bit_cnt + 1; // siguiente bit
                 end 
             end
         end
@@ -197,7 +197,8 @@ always @(*) begin
             next_state = IDLE;
         end
     endcase
-
 end
+
+
 
 endmodule
