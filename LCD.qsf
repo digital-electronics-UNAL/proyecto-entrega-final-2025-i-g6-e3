@@ -82,7 +82,7 @@ set_location_assignment PIN_100 -to enable
 set_location_assignment PIN_85 -to rs
 set_location_assignment PIN_99 -to rw
 set_location_assignment PIN_68 -to ready_i
-set_location_assignment PIN_67 -to reset
+set_location_assignment PIN_91 -to reset
 set_location_assignment PIN_58 -to mensaje[3]
 set_location_assignment PIN_59 -to mensaje[2]
 set_location_assignment PIN_60 -to mensaje[1]

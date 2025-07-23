@@ -28,6 +28,6 @@ module LCD1604_controller_TB();
     initial begin: TEST_CASE
         $dumpfile("LCD_TB.vcd");
         $dumpvars(-1, uut);
-        #(146000) $finish;
+        #(1460000) $finish;
     end
 endmodule

@@ -1,12 +1,13 @@
 module LCD1604_controller #(parameter NUM_COMMANDS = 4,   // 4 comandos basicos del funcionamiento de la LCD
-                                      NUM_DATA_ALL = 80,  
+                                      NUM_DATA_ALL = 32,  
                                       NUM_DATA_PERLINE = 20,
                                       DATA_BITS = 8,
+                                      MAX_COUNT = 8,
                                       COUNT_MAX = 800000)(
     input clk,            // Reloj
     input reset,          // Inicio estados 
     input ready_i,       
-    input [3:0] mensaje,
+    input [2:0] mensaje,
     output reg rs,        // Tipo de registro rs=0 "Comando configuracion", rs=1 "Datos"
     output reg rw,        // Accion rw=0 "Escritura", rw=1 "Lectura"
     output enable,    
@@ -18,12 +19,7 @@ localparam IDLE = 4'b0000;
 localparam CONFIG_CMD1 = 4'b0001;
 localparam WR_STATIC_TEXT_1L = 4'b0010;
 localparam WR_DINAMIC_TEXT = 4'b0011;
-localparam CONFIG_SUB_CMD2 = 4'b0100;
-localparam WRITE_2 = 4'b0101;
-localparam CONFIG_SUB_CMD3 = 4'b0110;
-localparam WRITE_3 = 4'b0111;
-localparam CONFIG_SUB_CMD4 = 4'b1000;
-localparam WRITE_4 = 4'b1001;
+
 
 integer i; 
 reg [2:0] fsm_state;
@@ -50,6 +46,8 @@ reg [$clog2(NUM_DATA_PERLINE):0] data_counter;
 //definir contador para controlar el envio de datos dinámicos
 reg [$clog2(NUM_DATA_PERLINE-1):0] dynamic_data_counter;
 
+reg [5:0] offset;
+
 // Banco de registros
 reg [DATA_BITS-1:0] static_data_mem [0: NUM_DATA_PERLINE-1]; // Memoria para los datos estáticos (tamaño)
 
@@ -57,86 +55,30 @@ reg [DATA_BITS-1:0] config_mem [0:NUM_COMMANDS-1]; // Memoria para los comandos 
 
 reg [DATA_BITS-1:0] pointer_mem [0:NUM_DATA_ALL]; // Memoria para los punteros de datos dinámicos
 
-reg [DATA_BITS-1:0] dynamic_data_mem [0:NUM_DATA_PERLINE-1]; // Memoria para los datos dinámicos (tamaño)
+reg [DATA_BITS-1:0] color_mem [0:40-1]; // Memoria para los datos dinámicos (tamaño)
 
 
-always @(posedge clk) begin
-    if (reset == 0) begin
-            for (i = 0; i < (NUM_DATA_PERLINE-1); i = i + 1) begin
-            dynamic_data_mem[i] <= 8'h20; // Inicializar con espacios en blanco
-        end
-
-    end else begin
-        case (mensaje)
-            4'b0000: begin // "verde"
-                dynamic_data_mem[0] <= 8'h56; // "V"
-                dynamic_data_mem[1] <= 8'h65; // "e"
-                dynamic_data_mem[2] <= 8'h72; // "r" 
-                dynamic_data_mem[3] <= 8'h64; // "d"
-                dynamic_data_mem[4] <= 8'h65; // "e"
-                
-                for (i = 5; i < (NUM_DATA_PERLINE-1); i = i + 1) begin
-                    dynamic_data_mem[i] <= 8'h20; // Espacio en blanco
-                end
-            end
-            4'b0001: begin // "azul" 41,7a,75,6c
-                dynamic_data_mem[0] <= 8'h41;
-                dynamic_data_mem[1] <= 8'h7a;
-                dynamic_data_mem[2] <= 8'h75;
-                dynamic_data_mem[3] <= 8'h6c;
-                
-                for (i = 4; i < (NUM_DATA_PERLINE-1); i = i + 1) begin
-                    dynamic_data_mem[i] <= 8'h20; // Espacio en blanco
-                end
-            end
-            4'b0010: begin // "rojo" 52,6f,6a,6f
-                dynamic_data_mem[0] <= 8'h52;
-                dynamic_data_mem[1] <= 8'h6f;
-                dynamic_data_mem[2] <= 8'h6a;
-                dynamic_data_mem[3] <= 8'h6f;
-                for (i = 4; i < (NUM_DATA_PERLINE-1); i = i + 1) begin
-                    dynamic_data_mem[i] <= 8'h20; // Espacio en blanco
-                end
-            end
-            4'b0011: begin // "amarillo" 41,6d,61,72,69,6c,6c,6f
-                dynamic_data_mem[0] <= 8'h41;
-                dynamic_data_mem[1] <= 8'h6d;
-                dynamic_data_mem[2] <= 8'h61;
-                dynamic_data_mem[3] <= 8'h72;
-                dynamic_data_mem[4] <= 8'h69;
-                dynamic_data_mem[5] <= 8'h6c;
-                dynamic_data_mem[6] <= 8'h6c;
-                dynamic_data_mem[7] <= 8'h6f;
-                for (i = 8; i < (NUM_DATA_PERLINE-1); i = i + 1) begin
-                    dynamic_data_mem[i] <= 8'h20; // Espacio en blanco
-                end
-            end
-            default: begin
-                for (i = 0; i < (NUM_DATA_PERLINE-1); i = i + 1) begin
-                    dynamic_data_mem[i] <= 8'h20; // Inicializar con espacios en blanco
-                end
-            end
-        endcase
-    end
-end
 
 always @(posedge clk) begin
-        pointer_mem[0] <= 8'h40;
+        pointer_mem[0] <= 8'hC0;
         pointer_mem[1] <= 8'h14; 
         pointer_mem[2] <= 8'h54;
 end
 
 initial begin
     fsm_state <= IDLE;
-    fsm_sub_state <= CONFIG_SUB_CMD2;
+    fsm_sub_state <= 2'b00;
     command_counter <= 'b0;
     data_counter <= 'b0;
     rs <= 1'b0;
     rw <= 1'b0;
     data <= 8'b0;
+	 offset <= 'b0;
+	 dynamic_data_counter <= 'b0;
     clk_16ms <= 1'b0;
     clk_counter <= 'b0;
-    $readmemh("/home/cristhianhendes/Simon dice/Simon-Dice/src/ Texto_estatico.txt",static_data_mem);    
+    $readmemh("/home/cristhianhendes/Simon dice/Simon-Dice/src/Texto_estatico.txt",static_data_mem);    
+    $readmemh("/home/cristhianhendes/Simon dice/Simon-Dice/src/color.txt",color_mem);    
 	config_mem[0] <= LINES2_MATRIX5x8_MODE8bit;
 	config_mem[1] <= SHIFT_CURSOR_RIGHT;
 	config_mem[2] <= DISPON_CURSOROFF;
@@ -161,10 +103,8 @@ end
 always @(posedge clk_16ms)begin //Condición inicial maquina de estados (Transición de estado)
     if(reset == 0)begin
         fsm_state <= IDLE;
-        fsm_sub_state <= CONFIG_SUB_CMD2;
     end else begin
         fsm_state <= next_state;
-        fsm_sub_state <= next_sub_state;
     end
 end
 
@@ -179,30 +119,7 @@ always @(*) begin // Lógica combinacional para la transición de estados
         WR_STATIC_TEXT_1L:begin
 			next_state <= (data_counter == NUM_DATA_PERLINE)? WR_DINAMIC_TEXT: WR_STATIC_TEXT_1L;
         end
-        WR_DINAMIC_TEXT: begin 
-            case(fsm_sub_state)
-                CONFIG_SUB_CMD2: begin
-                    next_sub_state <= WRITE_2;
-                end
-                WRITE_2: begin
-                    next_sub_state <= (dynamic_data_counter == NUM_DATA_PERLINE-1)? CONFIG_SUB_CMD3 : WRITE_2;
-                end
-                CONFIG_SUB_CMD3: begin
-                    next_sub_state <= WRITE_3;
-                end
-                WRITE_3: begin
-                    next_sub_state <= (dynamic_data_counter == NUM_DATA_PERLINE-1)? CONFIG_SUB_CMD4 : WRITE_3;
-                end
-                CONFIG_SUB_CMD4: begin
-                    next_sub_state <= WRITE_4;
-                end
-                WRITE_4: begin
-                    next_sub_state <= (dynamic_data_counter == NUM_DATA_PERLINE-1)? CONFIG_SUB_CMD2 : WRITE_4;
-                end
-                default: next_sub_state = CONFIG_SUB_CMD2;
-            endcase
-        end
-        default: next_state = IDLE;
+        default: next_state = WR_DINAMIC_TEXT;
     endcase
 end
 
@@ -211,7 +128,11 @@ always @(posedge clk_16ms) begin //
         command_counter <= 'b0;
         data_counter <= 'b0;
 		  data <= 'b0;
-        $readmemh("/home/cristhianhendes/Simon dice/Simon-Dice/src/ Texto_estatico.txt", static_data_mem);
+		  offset <= 0;
+        dynamic_data_counter <= 'b0;
+		  fsm_sub_state <= 2'b00;
+        $readmemh("/home/cristhianhendes/Simon dice/Simon-Dice/src/Texto_estatico.txt", static_data_mem);
+        $readmemh("/home/cristhianhendes/Simon dice/Simon-Dice/src/color.txt",color_mem);  
     end else begin
         case (next_state)
             IDLE: begin
@@ -230,38 +151,38 @@ always @(posedge clk_16ms) begin //
                 rs <= 1'b1; 
 				data <= static_data_mem[data_counter];
             end
-
             WR_DINAMIC_TEXT: begin
                 case (next_sub_state)
-                    CONFIG_SUB_CMD2: begin
+                    2'b00: begin
                         rs <= 1'b0; 	 
-                        dynamic_data_counter <= 'b0; // Reiniciar contador de datos dinámicos
-                        data <= pointer_mem[0];
+                        data <= 8'hC0;
+                        dynamic_data_counter <= 'b0;
+                        if (mensaje == 3'b000) begin
+                            offset <= 8;
+									 next_sub_state <= 2'b01;
+                        end else if (mensaje == 3'b001) begin
+                            offset <= 16;
+									 next_sub_state <= 2'b01;
+                        end else if (mensaje == 3'b010) begin
+                            offset <= 24;
+									 next_sub_state <= 2'b01;
+                        end else if (mensaje == 3'b011) begin
+                            offset <= 32;
+									 next_sub_state <= 2'b01;
+                        end else begin
+									offset <= 0;
+									next_sub_state <= 2'b01;
+							end
                     end
-                    WRITE_2:begin
-                        dynamic_data_counter <= dynamic_data_counter + 1;
+                    2'b01:begin
                         rs <= 1'b1; 
-                        data <= dynamic_data_mem[dynamic_data_counter];
-                    end
-                    CONFIG_SUB_CMD3:begin
-                        rs <= 1'b0;
-                        dynamic_data_counter <= 'b0; // Reiniciar contador de datos dinámicos
-                        data <= pointer_mem[1];
-                    end
-                    WRITE_3:begin
-                        dynamic_data_counter <= dynamic_data_counter + 1;
-                        rs <= 1'b1;                        
-                        data <= dynamic_data_mem[dynamic_data_counter];                    
-                    end
-                    CONFIG_SUB_CMD4:begin
-                        rs <= 1'b0;
-                        dynamic_data_counter <= 'b0; // Reiniciar contador de datos dinámicos
-                        data <= pointer_mem[2];
-                    end
-                    WRITE_4: begin
-                        dynamic_data_counter <= dynamic_data_counter + 1;
-                        rs <= 1'b1;
-                        data <= dynamic_data_mem[dynamic_data_counter];
+                        data <= color_mem[offset + dynamic_data_counter];
+                        if (dynamic_data_counter == MAX_COUNT-1) begin
+                            next_sub_state <= 2'b00;
+									 dynamic_data_counter <= 'b0;
+                        end else begin
+                            dynamic_data_counter <= dynamic_data_counter + 1;
+                        end
                     end
                 endcase    
             end
