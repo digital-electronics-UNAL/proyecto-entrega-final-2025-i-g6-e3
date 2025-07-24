@@ -77,8 +77,8 @@ initial begin
 	 dynamic_data_counter <= 'b0;
     clk_16ms <= 1'b0;
     clk_counter <= 'b0;
-    $readmemh("/home/cristhianhendes/Simon dice/Simon-Dice/src/Texto_estatico.txt",static_data_mem);    
-    $readmemh("/home/cristhianhendes/Simon dice/Simon-Dice/src/color.txt",color_mem);    
+    //$readmemh("/home/cristhianhendes/Simon dice/Simon-Dice/src/Texto_estatico.txt",static_data_mem);    
+    //$readmemh("/home/cristhianhendes/Simon dice/Simon-Dice/src/color.txt",color_mem);    
 	config_mem[0] <= LINES2_MATRIX5x8_MODE8bit;
 	config_mem[1] <= SHIFT_CURSOR_RIGHT;
 	config_mem[2] <= DISPON_CURSOROFF;
@@ -131,8 +131,8 @@ always @(posedge clk_16ms) begin //
 		  offset <= 0;
         dynamic_data_counter <= 'b0;
 		  fsm_sub_state <= 2'b00;
-        $readmemh("/home/cristhianhendes/Simon dice/Simon-Dice/src/Texto_estatico.txt", static_data_mem);
-        $readmemh("/home/cristhianhendes/Simon dice/Simon-Dice/src/color.txt",color_mem);  
+      //  $readmemh("/home/cristhianhendes/Simon dice/Simon-Dice/src/Texto_estatico.txt", static_data_mem);
+        //$readmemh("/home/cristhianhendes/Simon dice/Simon-Dice/src/color.txt",color_mem);  
     end else begin
         case (next_state)
             IDLE: begin
