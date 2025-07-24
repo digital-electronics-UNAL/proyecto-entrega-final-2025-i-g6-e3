@@ -1,5 +1,5 @@
-module  FSM #(parameter INIT_PATRON = 2,
-                        DATA_BITS = 4,
+module  FSM_V2 #(parameter INIT_PATRON = 2,
+                        DATA_BITS = 3,
                         IN_BITS = 2,
                         TIME = 20,
                         TIME_IN = 50,
@@ -64,7 +64,6 @@ initial begin
     data <= NULL;
     pun <= 'b0;
     punt <= 'b0;
-    $readmemh("/home/david/Simon-Dice/FSM/init.txt", patron);
     
 end
 
