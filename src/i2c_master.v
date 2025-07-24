@@ -1,5 +1,5 @@
 // Módulo I2C Master para comunicación con TCS3472
-module i2c_master (
+/*module i2c_master (
     input wire clk,           // Reloj del sistema
     input rst,           // Reset global
     input wire start,         // Señal de inicio de transacción
@@ -78,127 +78,128 @@ always @(posedge clk or posedge rst) begin
 end
 
 always @(*) begin
-    case(fsm_state)
-        IDLE: begin
-            done = 0;
-            sda_out = 1;
-            sda_out_en = 1;
-            next_state = (start) ? START : IDLE;
-        end
-        START: begin
-            sda_out = 0;
-            sda_out_en = 1; 
-            shift_reg = ADDR_WRITE;
-            bit_cnt = 0; 
-            next_state = SEND_ADDR_WRITE;
-        end
-        SEND_ADDR_WRITE: begin
-            sda_out_en = 1;
-            sda_out = shift_reg[bit_cnt]; // enviamos bit actual por SDA
-
-            if (scl_tick) begin
-                if (bit_cnt == 7) begin
-                    sda_out_en = 0; // liberar SDA para ACK
-                    next_state = WAIT_ACK_1; // esperamos ACK
-                end else begin 
-                    bit_cnt = bit_cnt + 1; // siguiente bit
-                end 
+        case(fsm_state)
+            IDLE: begin
+                done = 0;
+                sda_out = 1;
+                sda_out_en = 1;
+                next_state = (start) ? START : IDLE;
             end
-        end
-        WAIT_ACK_1: begin
-            sda_out_en = 0; // liberar SDA (entrada)
+            START: begin
+                sda_out = 0;
+                sda_out_en = 1; 
+                shift_reg = ADDR_WRITE;
+                bit_cnt = 0; 
+                next_state = SEND_ADDR_WRITE;
+            end
+            SEND_ADDR_WRITE: begin
+                sda_out_en = 1;
+                sda_out = shift_reg[bit_cnt]; // enviamos bit actual por SDA
 
-            if (scl_tick) begin
-                if (sda == 0) begin //ACK
-                    shift_reg = reg_addr;
+                if (scl_tick) begin
+                    if (bit_cnt == 7) begin
+                        sda_out_en = 0; // liberar SDA para ACK
+                        next_state = WAIT_ACK_1; // esperamos ACK
+                    end else begin 
+                        bit_cnt = bit_cnt + 1; // siguiente bit
+                    end 
+                end
+            end
+            WAIT_ACK_1: begin
+                sda_out_en = 0; // liberar SDA (entrada)
+
+                if (scl_tick) begin
+                    if (sda == 0) begin //ACK
+                        shift_reg = reg_addr;
+                        bit_cnt = 7;
+                        next_state = SEND_REG_ADR;
+                    end else begin //NACK
+                        next_state = STOP;
+                    end
+                end
+            end
+            SEND_REG_ADR: begin
+                sda_out_en = 1;
+                sda_out = shift_reg[bit_cnt];
+
+                if (scl_tick) begin
+                    if (bit_cnt == 0) begin
+                        sda_out_en = 0;
+                        next_state = WAIT_ACK_1; 
+                    end else begin
+                        bit_cnt = bit_cnt - 1;
+                    end
+                end
+            end
+            RESTART: begin
+                sda_out_en = 1;
+                sda_out = 1;
+
+                if (scl_tick) begin
+                    sda_out = 0; // SDA baja mientras SCL está alto
+                    shift_reg = ADDR_READ; // cargar dirección de lectura
                     bit_cnt = 7;
-                    next_state = SEND_REG_ADR;
-                end else begin //NACK
-                    next_state = STOP;
+                    next_state = SEND_ADDR_READ;
                 end
             end
-        end
-        SEND_REG_ADR: begin
-            sda_out_en = 1;
-            sda_out = shift_reg[bit_cnt];
+            SEND_ADDR_READ: begin
+                sda_out_en = 1;
+                sda_out = shift_reg[bit_cnt]; 
 
-            if (scl_tick) begin
-                if (bit_cnt == 0) begin
-                    sda_out_en = 0;
-                    next_state = WAIT_ACK_1; 
-                end else begin
-                    bit_cnt = bit_cnt - 1;
+                if (scl_tick) begin
+                    if (bit_cnt == 0) begin
+                        sda_out_en = 0; 
+                        next_state = WAIT_ACK_2; 
+                    end else begin 
+                        bit_cnt = bit_cnt - 1; 
+                    end 
+                end           
+            end
+            WAIT_ACK_2: begin
+                sda_out_en = 0; 
+
+                if (scl_tick) begin
+                    if (sda == 0) begin //ACK
+                        next_state = READ_BYTE_1;
+                    end else begin //NACK
+                        next_state = STOP;
+                    end
                 end
             end
-        end
-        RESTART: begin
-            sda_out_en = 1;
-            sda_out = 1;
+            READ_BYTE_1: begin
+                sda_out_en = 0; //SDA en lectura
 
-            if (scl_tick) begin
-                sda_out = 0; // SDA baja mientras SCL está alto
-                shift_reg = ADDR_READ; // cargar dirección de lectura
-                bit_cnt = 7;
-                next_state = SEND_ADDR_READ;
-            end
-        end
-        SEND_ADDR_READ: begin
-            sda_out_en = 1;
-            sda_out = shift_reg[bit_cnt]; 
+                if (scl_tick) begin
+                    shift_reg[bit_cnt] = sda; // leer bit entrante
 
-            if (scl_tick) begin
-                if (bit_cnt == 0) begin
-                    sda_out_en = 0; 
-                    next_state = WAIT_ACK_2; 
-                end else begin 
-                    bit_cnt = bit_cnt - 1; 
-                end 
-            end           
-        end
-        WAIT_ACK_2: begin
-            sda_out_en = 0; 
-
-            if (scl_tick) begin
-                if (sda == 0) begin //ACK
-                    next_state = READ_BYTE_1;
-                end else begin //NACK
-                    next_state = STOP;
+                    if (bit_cnt == 0) begin
+                        bit_cnt = 7;
+                        data_out = shift_reg; // guardar byte recibido
+                        sda_out_en = 1;
+                        sda_out = 1; // enviar NACK
+                        next_state = STOP;
+                    end else begin 
+                        bit_cnt = bit_cnt - 1;
+                    end
                 end
             end
-        end
-        READ_BYTE_1: begin
-            sda_out_en = 0; //SDA en lectura
+            STOP: begin
+                sda_out_en = 1;
+                sda_out = 0;
 
-            if (scl_tick) begin
-                shift_reg[bit_cnt] = sda; // leer bit entrante
-
-                if (bit_cnt == 0) begin
-                    bit_cnt = 7;
-                    data_out = shift_reg; // guardar byte recibido
-                    sda_out_en = 1;
-                    sda_out = 1; // enviar NACK
-                    next_state = STOP;
-                end else begin 
-                    bit_cnt = bit_cnt - 1;
+                if (scl_tick) begin
+                    sda_out = 1; // SDA sube mientras SCL está alto
+                    next_state = DONE;
                 end
             end
-        end
-        STOP: begin
-            sda_out_en = 1;
-            sda_out = 0;
-
-            if (scl_tick) begin
-                sda_out = 1; // SDA sube mientras SCL está alto
-                next_state = DONE;
+            DONE: begin
+                done = 1;
+                next_state = IDLE;
             end
-        end
-        DONE: begin
-            done = 1;
-            next_state = IDLE;
-        end
-    endcase
+        endcase
 end
 
 
 
 endmodule
+*/
