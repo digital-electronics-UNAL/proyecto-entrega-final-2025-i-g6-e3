@@ -95,10 +95,10 @@ always @(*) begin
             next_state <= DELAY;
         end
         START:begin
-			   next_state <= IDLE;
+			next_state <= IDLE;
         end
         DELAY: begin 
-            next_state <= (tiempo_in == TIME_IN)? START : DELAY;
+            next_state <= (tiempo == TIME)? START : DELAY;
         end
         default: next_state = IDLE;
     endcase
