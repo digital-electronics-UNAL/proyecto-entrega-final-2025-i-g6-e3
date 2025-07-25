@@ -1,7 +1,7 @@
-`include "FSM/FSM_V2.v"
-`include "src/LCD.v"
-`include "FSM/RANG.v"
-`include "FSM/LSFR.v"
+//`include "FSM/FSM_V2.v"
+//`include "src/LCD.v"
+//`include "FSM/RANG.v"
+//`include "FSM/LSFR.v"
 
 module top (
     input clk,
@@ -31,7 +31,7 @@ module top (
   );
   
 
-  LCD1604_controller #(4, 32, 20, 8, 8, 80) lcd(
+  LCD1604_controller #(4, 32, 20, 8, 8, 40, 80) lcd(
         .clk(clk),.reset(Reset),.ready_i(1'b1),.mensaje(DataFSM),.rs(Rs),.rw(Rw),.enable(Enable),.data(Data)
   );
 endmodule

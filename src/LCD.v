@@ -3,6 +3,7 @@ module LCD1604_controller #(parameter NUM_COMMANDS = 4,   // 4 comandos basicos 
                                       NUM_DATA_PERLINE = 20,
                                       DATA_BITS = 8,
                                       MAX_COUNT = 8,
+                                      DATA_DINAMIC = 40,
                                       COUNT_MAX = 800000)(
     input clk,            // Reloj
     input reset,          // Inicio estados 
@@ -55,7 +56,7 @@ reg [DATA_BITS-1:0] config_mem [0:NUM_COMMANDS-1]; // Memoria para los comandos 
 
 reg [DATA_BITS-1:0] pointer_mem [0:NUM_DATA_ALL]; // Memoria para los punteros de datos dinámicos
 
-reg [DATA_BITS-1:0] color_mem [0:40-1]; // Memoria para los datos dinámicos (tamaño)
+reg [DATA_BITS-1:0] color_mem [0:DATA_DINAMIC-1]; // Memoria para los datos dinámicos (tamaño)
 
 
 
@@ -68,7 +69,6 @@ end
 initial begin
     fsm_state <= IDLE;
     fsm_sub_state <= 2'b00;
-    next_sub_state <= 2'b00;
     command_counter <= 'b0;
     data_counter <= 'b0;
     rs <= 1'b0;
@@ -78,8 +78,8 @@ initial begin
 	 dynamic_data_counter <= 'b0;
     clk_16ms <= 1'b0;
     clk_counter <= 'b0;
-    $readmemh("//home/david/github-classroom/digital-electronics-UNAL/proyecto-entrega-final-2025-i-g6-e3/src/Texto_estatico.txt",static_data_mem);    
-    $readmemh("/home/david/github-classroom/digital-electronics-UNAL/proyecto-entrega-final-2025-i-g6-e3/src/color.txt",color_mem);    
+    $readmemh("/home/cristhianhendes/github-classroom/digital-electronics-UNAL/proyecto-entrega-final-2025-i-g6-e3/src/Texto_estatico.txt",static_data_mem);    
+    $readmemh("/home/cristhianhendes/github-classroom/digital-electronics-UNAL/proyecto-entrega-final-2025-i-g6-e3/src/color.txt",color_mem);    
 	config_mem[0] <= LINES2_MATRIX5x8_MODE8bit;
 	config_mem[1] <= SHIFT_CURSOR_RIGHT;
 	config_mem[2] <= DISPON_CURSOROFF;
@@ -102,12 +102,10 @@ end
 
 
 always @(posedge clk_16ms)begin //Condición inicial maquina de estados (Transición de estado)
-    if(reset)begin
+    if(reset == 0)begin
         fsm_state <= IDLE;
-        fsm_sub_state <= 'b0;
     end else begin
         fsm_state <= next_state;
-        fsm_sub_state <= next_sub_state; 
     end
 end
 
@@ -127,17 +125,17 @@ always @(*) begin // Lógica combinacional para la transición de estados
 end
 
 always @(posedge clk_16ms) begin //
-    if (reset) begin
+    if (reset == 0) begin
         command_counter <= 'b0;
         data_counter <= 'b0;
 		  data <= 'b0;
 		  offset <= 0;
         dynamic_data_counter <= 'b0;
 		  fsm_sub_state <= 2'b00;
-        $readmemh("//home/david/github-classroom/digital-electronics-UNAL/proyecto-entrega-final-2025-i-g6-e3/src/Texto_estatico.txt",static_data_mem);    
-        $readmemh("/home/david/github-classroom/digital-electronics-UNAL/proyecto-entrega-final-2025-i-g6-e3/src/color.txt",color_mem);    
-	end else begin
-        case (fsm_state)
+        $readmemh("/home/cristhianhendes/github-classroom/digital-electronics-UNAL/proyecto-entrega-final-2025-i-g6-e3/src/Texto_estatico.txt", static_data_mem);
+        $readmemh("/home/cristhianhendes/github-classroom/digital-electronics-UNAL/proyecto-entrega-final-2025-i-g6-e3/src/color.txt",color_mem);  
+    end else begin
+        case (next_state)
             IDLE: begin
                 command_counter <= 'b0;
                 data_counter <= 'b0;
@@ -155,7 +153,7 @@ always @(posedge clk_16ms) begin //
 				data <= static_data_mem[data_counter];
             end
             WR_DINAMIC_TEXT: begin
-                case (fsm_sub_state)
+                case (next_sub_state)
                     2'b00: begin
                         rs <= 1'b0; 	 
                         data <= 8'hC0;
@@ -174,8 +172,8 @@ always @(posedge clk_16ms) begin //
 									 next_sub_state <= 2'b01;
                         end else begin
 									offset <= 0;
-									next_sub_state <= 2'b00;
-                        end
+									next_sub_state <= 2'b01;
+							end
                     end
                     2'b01:begin
                         rs <= 1'b1; 
