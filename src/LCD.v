@@ -8,11 +8,18 @@ module LCD1604_controller #(parameter NUM_COMMANDS = 4,   // 4 comandos basicos 
     input clk,            // Reloj
     input reset,          // Inicio estados 
     input ready_i,       
-    input [2:0] mensaje,
     output reg rs,        // Tipo de registro rs=0 "Comando configuracion", rs=1 "Datos"
     output reg rw,        // Accion rw=0 "Escritura", rw=1 "Lectura"
     output enable,    
-    output reg [DATA_BITS-1:0] data
+    output reg [DATA_BITS-1:0] data,
+	 
+	 output reg buzzer,
+	 
+	 output power,
+	 input rojo,
+	 input verde,
+	 input azul,
+	 input amarillo
 );
 
 // Definir los estados de la FSM
@@ -29,6 +36,9 @@ reg [3:0] fsm_sub_state;
 reg [3:0] next_sub_state;
 
 reg clk_16ms;
+reg clk_rnd;
+
+assign power = 1;
 
 // Comandos de configuración
 localparam CLEAR_DISPLAY = 8'h01;
@@ -40,6 +50,8 @@ localparam START_2LINE = 8'hC0;
 
 // Definir un contador para el divisor de frecuencia
 reg [$clog2(COUNT_MAX)-1:0] clk_counter;
+// Definir un contador para el divisor de frecuencia
+reg [$clog2(4*COUNT_MAX)-1:0] clk_counter2;
 // Definir un contador para controlar el envío de comandos
 reg [$clog2(NUM_COMMANDS):0] command_counter;
 // Definir un contador para controlar el envío de datos
@@ -77,7 +89,10 @@ initial begin
 	 offset <= 'b0;
 	 dynamic_data_counter <= 'b0;
     clk_16ms <= 1'b0;
+	 clk_rnd <= 1'b0;
     clk_counter <= 'b0;
+	 clk_counter2 <= 'b0;
+	 buzzer <= 'b0;
     $readmemh("/home/cristhianhendes/github-classroom/digital-electronics-UNAL/proyecto-entrega-final-2025-i-g6-e3/src/Texto_estatico.txt",static_data_mem);    
     $readmemh("/home/cristhianhendes/github-classroom/digital-electronics-UNAL/proyecto-entrega-final-2025-i-g6-e3/src/color.txt",color_mem);    
 	config_mem[0] <= LINES2_MATRIX5x8_MODE8bit;
@@ -99,6 +114,18 @@ always @(posedge clk) begin // Generación del reloj (divisor de frecuencia)
         clk_counter <= clk_counter + 1;
     end
 end
+
+
+always @(posedge clk) begin // Generación del reloj (divisor de frecuencia)
+    if (clk_counter2 == (1900000-1)) begin
+        clk_rnd <= ~clk_rnd;
+        clk_counter2 <= 'b0;
+    end else begin
+        clk_counter2 <= clk_counter2 + 1;
+    end
+end
+
+
 
 
 always @(posedge clk_16ms)begin //Condición inicial maquina de estados (Transición de estado)
@@ -124,7 +151,7 @@ always @(*) begin // Lógica combinacional para la transición de estados
     endcase
 end
 
-always @(posedge clk_16ms) begin //
+always @(posedge clk_16ms) begin 
     if (reset == 0) begin
         command_counter <= 'b0;
         data_counter <= 'b0;
@@ -191,6 +218,25 @@ always @(posedge clk_16ms) begin //
     end
 end
 
+reg [1:0] mensaje;
+
+always @(posedge clk_rnd) begin
+    if (reset == 0) begin
+        mensaje <= 2'b01;  // semilla inicial distinta de 00
+    end else begin if(next_state == WR_DINAMIC_TEXT) 
+        // feedback: XOR de los dos bits
+        // taps: [1] y [0]
+        mensaje <= {mensaje[0], clk_rnd ^ mensaje[1]};
+    end
+end
+
+always @(*) begin
+	buzzer = (rojo == 1'b0)? 1'b1 : 1'b0;
+end
+
+
 assign enable = clk_16ms;
+
+
 
 endmodule

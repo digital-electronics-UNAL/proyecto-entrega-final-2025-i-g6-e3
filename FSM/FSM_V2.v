@@ -9,7 +9,7 @@ module  FSM_V2 #(parameter INIT_PATRON = 2,
     input [IN_BITS:0] color,
     input [1:0] rnd,
     output reg [DATA_BITS-1:0] data,
-    output reg [7:0] pun,
+    //output reg [7:0] pun,
     output reg buzzer
 );
 
@@ -49,7 +49,7 @@ reg [1:0] correcto;
 
 reg [IN_BITS-1:0] temp;///////////////////////////// 
 
-reg [7:0] punt;
+//reg [7:0] punt;
 
 initial begin
     fsm_state <= IDLE;
@@ -63,8 +63,8 @@ initial begin
     buzzer = 'b0;
     temp <= 'b0;
     data <= NULL;
-    pun <= 'b0;
-    punt <= 'b0;
+    //pun <= 'b0;
+    //punt <= 'b0;
     
 end
 
@@ -126,7 +126,7 @@ always @(posedge clk_16ms) begin
             end
             START: begin
                 tiempo <= 'b0;
-                pun <= pun + 1;
+                //pun <= pun + 1;
                 correcto <= (temp == color)? 2'b01 : 2'b00;
             end
             DELAY: begin
