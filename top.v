@@ -22,7 +22,7 @@ module top (
   wire [1:0] rnd;  
 
 
-  FSM_V2 #(2, 3, 2, 10, 50, 50) fsm( 
+  FSM_V2 #(2, 3, 2, 100, 50,20) fsm( 
         .clk(clk),.reset(Reset),.color(Color),.pun(Pun),.buzzer(Buzzer),.data(DataFSM),.rnd(rnd)
   );
 
@@ -31,7 +31,7 @@ module top (
   );
   
 
-  LCD1604_controller lcd(
+  LCD1604_controller #(4, 32, 20, 8, 8, 80) lcd(
         .clk(clk),.reset(Reset),.ready_i(1'b1),.mensaje(DataFSM),.rs(Rs),.rw(Rw),.enable(Enable),.data(Data)
   );
 endmodule

@@ -20,7 +20,7 @@ module FSM_tb();
 
     initial begin
         clk = 0;
-        reset = 1;
+        reset = 0;
         ready = 1;
     end
 

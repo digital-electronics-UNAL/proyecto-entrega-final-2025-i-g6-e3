@@ -79,7 +79,7 @@ end
 
 
 always @(posedge clk_16ms)begin
-    if(reset == 0)begin
+    if(reset)begin
         fsm_state <= IDLE;
     end else begin
         fsm_state <= next_state;
@@ -98,21 +98,21 @@ always @(*) begin
 			   next_state <= IDLE;
         end
         DELAY: begin 
-            next_state <= (tiempo_in == TIME_IN)? START : DELAY;
+            next_state <= (tiempo == TIME)? START : DELAY;
         end
         default: next_state = IDLE;
     endcase
 end
 
 always @(posedge clk_16ms) begin
-    if (reset == 0) begin
+    if (reset) begin
         patron_counter <= 'b0;
         patron_comp_counter <= 'b0;
         correcto <= 2'b10; 
 	    data <= 4'b1000;
         tiempo <= 'b0;
         tiempo_in <= 'b0;
-        $readmemh("/home/cristhianhendes/github-classroom/digital-electronics-UNAL/proyecto-entrega-final-2025-i-g6-e3/FSM/init.txt", patron);
+        $readmemh("/home/david/github-classroom/digital-electronics-UNAL/proyecto-entrega-final-2025-i-g6-e3/FSM/init.txt", patron);
     end else begin
         case (next_state)
             IDLE: begin
@@ -121,7 +121,7 @@ always @(posedge clk_16ms) begin
             LOAD: begin 	
                 correcto <= 2'b10;
                 temp <= rnd;  
-                data <= temp;
+                data <= {1'b0,temp};
                 //patron [patron_counter] <= patron [patron_counter] [2:0]; 
             end
             START: begin

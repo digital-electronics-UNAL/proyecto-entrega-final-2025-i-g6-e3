@@ -68,6 +68,7 @@ end
 initial begin
     fsm_state <= IDLE;
     fsm_sub_state <= 2'b00;
+    next_sub_state <= 2'b00;
     command_counter <= 'b0;
     data_counter <= 'b0;
     rs <= 1'b0;
@@ -77,8 +78,8 @@ initial begin
 	 dynamic_data_counter <= 'b0;
     clk_16ms <= 1'b0;
     clk_counter <= 'b0;
-    //$readmemh("/home/cristhianhendes/Simon dice/Simon-Dice/src/Texto_estatico.txt",static_data_mem);    
-    //$readmemh("/home/cristhianhendes/Simon dice/Simon-Dice/src/color.txt",color_mem);    
+    $readmemh("//home/david/github-classroom/digital-electronics-UNAL/proyecto-entrega-final-2025-i-g6-e3/src/Texto_estatico.txt",static_data_mem);    
+    $readmemh("/home/david/github-classroom/digital-electronics-UNAL/proyecto-entrega-final-2025-i-g6-e3/src/color.txt",color_mem);    
 	config_mem[0] <= LINES2_MATRIX5x8_MODE8bit;
 	config_mem[1] <= SHIFT_CURSOR_RIGHT;
 	config_mem[2] <= DISPON_CURSOROFF;
@@ -101,10 +102,12 @@ end
 
 
 always @(posedge clk_16ms)begin //Condición inicial maquina de estados (Transición de estado)
-    if(reset == 0)begin
+    if(reset)begin
         fsm_state <= IDLE;
+        fsm_sub_state <= 'b0;
     end else begin
         fsm_state <= next_state;
+        fsm_sub_state <= next_sub_state; 
     end
 end
 
@@ -124,17 +127,17 @@ always @(*) begin // Lógica combinacional para la transición de estados
 end
 
 always @(posedge clk_16ms) begin //
-    if (reset == 0) begin
+    if (reset) begin
         command_counter <= 'b0;
         data_counter <= 'b0;
 		  data <= 'b0;
 		  offset <= 0;
         dynamic_data_counter <= 'b0;
 		  fsm_sub_state <= 2'b00;
-      //  $readmemh("/home/cristhianhendes/Simon dice/Simon-Dice/src/Texto_estatico.txt", static_data_mem);
-        //$readmemh("/home/cristhianhendes/Simon dice/Simon-Dice/src/color.txt",color_mem);  
-    end else begin
-        case (next_state)
+        $readmemh("//home/david/github-classroom/digital-electronics-UNAL/proyecto-entrega-final-2025-i-g6-e3/src/Texto_estatico.txt",static_data_mem);    
+        $readmemh("/home/david/github-classroom/digital-electronics-UNAL/proyecto-entrega-final-2025-i-g6-e3/src/color.txt",color_mem);    
+	end else begin
+        case (fsm_state)
             IDLE: begin
                 command_counter <= 'b0;
                 data_counter <= 'b0;
@@ -152,7 +155,7 @@ always @(posedge clk_16ms) begin //
 				data <= static_data_mem[data_counter];
             end
             WR_DINAMIC_TEXT: begin
-                case (next_sub_state)
+                case (fsm_sub_state)
                     2'b00: begin
                         rs <= 1'b0; 	 
                         data <= 8'hC0;
@@ -171,8 +174,8 @@ always @(posedge clk_16ms) begin //
 									 next_sub_state <= 2'b01;
                         end else begin
 									offset <= 0;
-									next_sub_state <= 2'b01;
-							end
+									next_sub_state <= 2'b00;
+                        end
                     end
                     2'b01:begin
                         rs <= 1'b1; 
