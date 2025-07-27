@@ -59,6 +59,7 @@ A partir de los comandos que se pueden ver en la imagen, dígase de comandoss aq
 ## 2. Simulaciones (Descripción)
 
 ### - FSM
+![Imagen general](images/FSM_sim.jpg)
 ### - LCD
 ### - I2C
 
@@ -66,56 +67,11 @@ A partir de los comandos que se pueden ver en la imagen, dígase de comandoss aq
 
 ### - FSM
 
-<p align="center">
-  <img src="DiagramaBCD.jpg" alt="DigramaBCD" width="400"/>
-</p>
-
 ### - LCD
 ### - I2C
-## 4. Simulaciones 
-
-### - FSM
-
-<p align="center">
-  <img src="sum7seg.jpg" alt="Digrm" width="400"/>
-</p>
 
 ## 5. Implementación
 
-### - FSM
-
-<p align="center">
-  <img src="ImplementacionBCD_1.jpeg" alt="ImpBCD1" width="400"/>
-</p>
-
-<p align="center">
-  <img src="ImplementacionBCD_2.jpeg" alt="ImpBCD2" width="400"/>
-</p>
-
-Se destaca que no se presentaron inconvenientes con los puertos USB y el reconocimiento de la tarjeta.
-
-
-### - LCD
-
-
-### - I2C
-<p align="center">
-  <img src="pinplner.jpeg" alt="Cero" width="400"/>
-</p>
-
-Como evidencia del funcionamiento de esta sección de la práctica se tomaron las siguientes imágenes: 
-
-<p align="center">
-  <img src="cer.jpeg" alt="Cero" width="400"/>
-</p>
-
-<p align="center">
-  <img src="pos.jpeg" alt="Pos" width="400"/>
-</p>
-
-<p align="center">
-  <img src="neg.jpeg" alt="Neg" width="400"/>
-</p>
 
 ## Conclusiones
 
