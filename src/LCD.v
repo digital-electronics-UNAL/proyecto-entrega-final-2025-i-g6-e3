@@ -197,10 +197,10 @@ always @(posedge clk_16ms) begin
                         end else if (mensaje == 3'b011) begin
                             offset <= 32;
 									 next_sub_state <= 2'b01;
-                        end else begin
+                        end  else begin
 									offset <= 0;
 									next_sub_state <= 2'b01;
-							end
+						end
                     end
                     2'b01:begin
                         rs <= 1'b1; 
@@ -231,7 +231,10 @@ always @(posedge clk_rnd) begin
 end
 
 always @(*) begin
-	buzzer = (rojo == 1'b0)? 1'b1 : 1'b0;
+	mensaje = (rojo == 1'b0)? 2'b00;
+    mensaje = (verde == 1'b0)? 2'b01;
+    mensaje = (azul == 1'b0 && mensaje == 2'b10)? 2'b00;
+    mensaje = (amarillo == 1'b0)? 2'b11;
 end
 
 
