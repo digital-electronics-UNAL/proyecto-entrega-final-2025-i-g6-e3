@@ -19,8 +19,7 @@ Indice:
 1. [Diseño implementado](#1-diseño-implementado)
 2. [Simulaciones](#2-descripción)
 3. [Implementación](#3-diagramas)
-4. [Simulaciones](#4-simulaciones)
-5. [Implementación](#5-implementación)
+5. [Implementación](#4-implementación)
 6. [Conclusiones](#conclusiones)
 
 ## 1. Nota aclaratoria
@@ -59,19 +58,21 @@ A partir de los comandos que se pueden ver en la imagen, dígase de comandoss aq
 ## 2. Simulaciones (Descripción)
 
 ### - FSM
-![Imagen general](images/FSM_sim.jpg)
+![Imagen general](images/FSM_sim.png)
 ### - LCD
 ### - I2C
 
 ## 3. Diagramas
 
 ### - FSM
-
+![Imagen general](images/FSM.png)
+![Imagen general](images/FSMV2.png)
 ### - LCD
 ### - I2C
 
-## 5. Implementación
+## 4. Implementación
 
+![Imagen general](images/Chasis.jpeg)
 
 ## Conclusiones
 
