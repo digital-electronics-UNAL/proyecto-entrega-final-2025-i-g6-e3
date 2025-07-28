@@ -46,6 +46,8 @@ Los registros fueron utilizados para crear la memoria de datos estáticos y din�
 
 Los datos en memoria fueron almacenados por medio de la lectura de datos en formato hexadecimal que se encuentran registrados en archivos de formato txt, datos que representan el mensaje que se desea mostrar, para nuestro caso en un archivo .txt se guardaron el mensaje que se mostraría como texto estático el cual es "Simón dice" y en otro archivo se guardo el conjunto de mensajes que representara el texto dinámico dependiendo del valor de una entrada recibida del modulo FSM y que tiene como posibles mensajes los colores "rojo, verde, azul, amarillo y espacios en blanco".
 
+![Imagen general](images/PantallaLCD.jpeg)
+
 ### - I2C
 
 Para la conexión con el modulo de color TCS34725, se implemento primero en un Arduino Uno, buscando conocer el proceso que realizaba la libreria de conexión para realizar la comunicación entre el microprocesador y el sensor, de manera que a partir de un analizador lógico realizamos una conexión a las puertos del Arduino que enviaban o recibían información del sensor, de manera que contrastando con el Datasheet del TCS34725, intentamos replicar este comportamiento en la FPGA.
@@ -92,7 +94,8 @@ A continuación, se muestran los diagramas de estado de las dos versiones de la 
 ![Imagen general](images/FSM.png)
 ![Imagen general](images/FSMV2.png)
 ### - LCD
-### - I2C
+![Imagen general](images/DiagramaLCD.png)
+
 
 ## 4. Contrucción fisica
 
