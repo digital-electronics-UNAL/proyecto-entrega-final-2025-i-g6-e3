@@ -55,9 +55,30 @@ A partir de los comandos que se pueden ver en la imagen, dígase de comandoss aq
 ![Imagen ampliada](images/PulseViewAmpliada.jpeg)
 ![Imagen general](images/PulseViewGeneral.jpg)
 
+A partir de lo anterior en el archivo i2c\_refactor.v encontramos la realización del protocolo de comunicación usando la estructura anteriormente dicha, de esta manera se propusieron 12 estados para la máquina de estados, que realizaráá el envío de datos al sensor.
+
+| **Código** | **Nombre**      | **Descripción**                                                         |
+| ---------- | --------------- | ----------------------------------------------------------------------- |
+| 0          | `IDLE`          | Estado de reposo. Espera la señal `start` para iniciar una transacción. |
+| 1          | `START`         | Genera la condición de inicio I2C (SDA baja mientras SCL está alta).    |
+| 2          | `SEND_ADDR_WR`  | Envía la dirección del esclavo con el bit de escritura.                 |
+| 3          | `WAIT_ACK_WR`   | Libera SDA para recibir el bit de ACK del esclavo tras la dirección.    |
+| 4          | `SEND_REG_ADDR` | Envía la dirección del registro del sensor a consultar.                 |
+| 5          | `WAIT_ACK_REG`  | Espera el ACK del esclavo por la dirección del registro.                |
+| 6          | `RESTART`       | Genera una nueva condición de START para cambiar a modo lectura.        |
+| 7          | `SEND_ADDR_RD`  | Envía la dirección del esclavo con el bit de lectura.                   |
+| 8          | `WAIT_ACK_RD`   | Espera el ACK tras enviar la dirección con bit de lectura.              |
+| 9          | `READ_BYTE`     | Lee los 8 bits del dato enviado por el esclavo.                         |
+| 10         | `SEND_NACK`     | Envía un NACK para indicar que no se leerán más datos.                  |
+| 11         | `STOP`          | Genera la condición de parada I2C (SDA alta mientras SCL está alta).    |
+| 12         | `DONE`          | Finaliza la transacción y activa la señal `done`.                       |
+
+
 ## 2. Simulaciones (Descripción)
 
 ### - FSM
+Para la primer versión de FSM, se creó un módulo denominado top, el cual fue probado en un testbench. Para poder hacerlo funcionar, fue necesario realizar algunos ajustes en el módulo del LCD, concretamente en la forma en que se manejaban los estados. Otra modificación necesaria fue el manejo de la entrada de reset. Aunque en la simulación con GTKWave funcionó correctamente, en la práctica se presentaron errores de visualización en el LCD, por lo que fue necesario modificar la FSM.
+
 ![Imagen general](images/FSM_sim.png)
 ### - LCD
 ### - I2C
@@ -65,15 +86,24 @@ A partir de los comandos que se pueden ver en la imagen, dígase de comandoss aq
 ## 3. Diagramas
 
 ### - FSM
+
+A continuación, se muestran los diagramas de estado de las dos versiones de la FSM que se desarrollaron. Es importante aclarar que en el diagrama de la primera versión no se indicaron las salidas ni las condiciones de cambio de estado, principalmente porque no se pudo emplear en el proyecto tal como fue diseñado originalmente. Adicionalmente, se puede observar la simplificación que fue necesario realizar con el fin de intentar incorporarlo al sistema final.
+
 ![Imagen general](images/FSM.png)
 ![Imagen general](images/FSMV2.png)
 ### - LCD
 ### - I2C
 
-## 4. Implementación
+## 4. Contrucción fisica
+
+El diseño físico del sistema se desarrolló con el objetivo de integrar todos los componentes en una estructura funcional y organizada. La carcasa fue elaborada mediante impresión 3D en PLA, lo que permitió ubicar adecuadamente la FPGA, la pantalla LCD, el sensor de color y los pulsadores. Aunque al final fue necesario realizar algunas modificaciones, el concepto general se mantuvo constante a lo largo del proyecto.
 
 ![Imagen general](images/Chasis.jpeg)
 
 ## Conclusiones
 
-- 
+El desarrollo del proyecto Quick Reflexes fue una experiencia desafiante pero enriquecedora, en la que aplicamos muchos de los conocimientos adquiridos durante el curso y, al mismo tiempo, nos enfrentamos a situaciones que nos exigieron adaptarnos, buscar soluciones creativas y trabajar en equipo.\\
+\\
+Aunque nuestra idea inicial incluía una lógica más compleja, con secuencias de colores crecientes y activación sonora al acertar, tuvimos que simplificar el diseño debido a dificultades técnicas. El protocolo de comunicación con el sensor presentó obstáculos, y el buzzer no logró integrarse como esperábamos. Esto nos llevó a replantear parte del juego: construimos un circuito con LEDs y pulsadores, donde el jugador debía presionar el botón correspondiente al color que se mostraba en pantalla. Esta solución improvisada, aunque más básica, permitió mantener el sentido general del juego y demostrar que podíamos reaccionar de manera flexible ante los retos.\\
+\\
+No logramos al 100\% todos los objetivos propuestos, pero el proyecto nos dejó aprendizajes valiosos: la importancia de probar los módulos por separado, de tener claridad en las señales y en la lógica, y de no subestimar el tiempo que requiere la integración entre componentes. También nos permitió fortalecer habilidades como la comunicación en equipo, la resolución de problemas bajo presión y la toma de decisiones frente a limitaciones reales.
